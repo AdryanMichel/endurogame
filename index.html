@@ -72,11 +72,16 @@
         car.src = "car.png"; 
         const obstacleImg = new Image();
         obstacleImg.src = "obstacle.png"; 
+        const road = new Image();
+        road.src = "road.png";
 
         let carX = 175;
         let carY = 500;
         let obstacles = [];
-        let speed = 4;
+        let baseSpeed = 2; // Velocidade mínima
+        let maxSpeed = 8;  // Velocidade máxima
+        let speed = baseSpeed;
+        let roadOffset = 0;
         let score = 0;
         let gameRunning = false;
 
@@ -84,10 +89,12 @@
             if (!gameRunning) return;
             if (event.key === "ArrowLeft" && carX > 50) carX -= 15;
             if (event.key === "ArrowRight" && carX < 300) carX += 15;
+            if (event.key === "ArrowUp" && speed < maxSpeed) speed += 0.5;
+            if (event.key === "ArrowDown" && speed > baseSpeed) speed -= 0.5;
         });
 
         function updateObstacles() {
-            if (Math.random() < 0.02) {
+            if (Math.random() < 0.01) { // Diminuiu a frequência de obstáculos
                 obstacles.push({ x: Math.random() * 300 + 50, y: -50 });
             }
             obstacles.forEach((obstacle, index) => {
@@ -123,7 +130,18 @@
         function update() {
             if (!gameRunning) return;
 
+            // Movimenta o fundo da pista para simular movimento
+            roadOffset += speed;
+            if (roadOffset >= canvas.height) {
+                roadOffset = 0;
+            }
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Desenha a pista com deslocamento
+            ctx.drawImage(road, 0, roadOffset - canvas.height, canvas.width, canvas.height);
+            ctx.drawImage(road, 0, roadOffset, canvas.width, canvas.height);
+
             ctx.drawImage(car, carX, carY, 50, 100);
             obstacles.forEach(obstacle => {
                 ctx.drawImage(obstacleImg, obstacle.x, obstacle.y, 50, 50);
@@ -141,6 +159,8 @@
             canvas.style.display = "block";
             score = 0;
             carX = 175;
+            carY = 500;
+            speed = baseSpeed;
             obstacles = [];
             scoreDisplay.innerText = "Pontos: 0";
             gameRunning = true;
