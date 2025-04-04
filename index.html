@@ -74,6 +74,8 @@
         let coins = 0;
         let gameRunning = false;
         let obstacles = [];
+        let speed = 5;
+        const laneWidth = canvas.width / 3;
 
         function updateScore() {
             scoreDisplay.innerText = "Pontos: " + score;
@@ -118,6 +120,12 @@
             update();
         }
 
+        document.addEventListener("keydown", (event) => {
+            if (!gameRunning) return;
+            if (event.key === "ArrowLeft" && carX > laneWidth / 2 - 25) carX -= laneWidth;
+            if (event.key === "ArrowRight" && carX < canvas.width - laneWidth - 25) carX += laneWidth;
+        });
+
         function update() {
             if (!gameRunning) return;
             
@@ -130,7 +138,6 @@
             ctx.drawImage(car, carX, carY, 50, 100);
             
             if (Math.random() < 0.02) {
-                let laneWidth = canvas.width / 3;
                 let lane = Math.floor(Math.random() * 3);
                 let obstacleX = lane * laneWidth + laneWidth / 2 - 25;
                 let obstacleImg = Math.random() < 0.5 ? obstacle1 : obstacle2;
@@ -138,11 +145,21 @@
             }
 
             obstacles.forEach((obstacle, index) => {
-                obstacle.y += 5;
+                obstacle.y += speed;
                 ctx.drawImage(obstacle.img, obstacle.x, obstacle.y, 50, 100);
+                if (
+                    carX < obstacle.x + 50 &&
+                    carX + 50 > obstacle.x &&
+                    carY < obstacle.y + 100 &&
+                    carY + 100 > obstacle.y
+                ) {
+                    gameRunning = false;
+                    gameOverScreen.style.display = "flex";
+                    canvas.style.display = "none";
+                }
                 if (obstacle.y > canvas.height) obstacles.splice(index, 1);
             });
-
+            
             requestAnimationFrame(update);
         }
     </script>
