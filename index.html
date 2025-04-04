@@ -37,37 +37,10 @@
         <button onclick="closeStore()">Voltar</button>
     </div>
 
- <!DOCTYPE html>
-<html lang="pt">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Corrida Suave</title>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { overflow: hidden; background: black; font-family: Arial, sans-serif; }
-        canvas { display: none; background: url('road.png') repeat-y center; }
-        #menu, #gameOver {
-            position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            color: white; font-size: 24px;
-            display: flex; flex-direction: column; align-items: center;
-        }
-        button { font-size: 20px; padding: 10px 20px; margin-top: 10px; cursor: pointer; }
-        #score, #coins { position: absolute; top: 10px; left: 10px; color: white; font-size: 20px; }
-        #coins { left: auto; right: 10px; }
-    </style>
-</head>
-<body>
-    <div id="menu">
-        <h1>Corrida Suave</h1>
-        <button onclick="startGame()">Jogar</button>
-    </div>
-
     <div id="gameOver" style="display: none;">
         <h1>Game Over</h1>
         <p id="finalScore"></p>
-        <button onclick="restartGame()">Reiniciar</button>
+        <button onclick="returnToMenu()">Voltar ao Menu</button>
     </div>
 
     <div id="score">Pontos: 0</div>
@@ -79,138 +52,121 @@
         const ctx = canvas.getContext("2d");
         const menu = document.getElementById("menu");
         const gameOverScreen = document.getElementById("gameOver");
+        const store = document.getElementById("store");
         const scoreDisplay = document.getElementById("score");
         const coinsDisplay = document.getElementById("coins");
-        const finalScore = document.getElementById("finalScore");
+        const storeCoinsDisplay = document.getElementById("storeCoins");
 
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        const car = new Image(); car.src = "car.png";
-        const obstaclesImg = ["carro1.png", "carro2.png", "carro3.png"].map(src => {
-            let img = new Image();
-            img.src = src;
-            return img;
-        });
+        let car = new Image(); car.src = "car.png";
+        const obstacle1 = new Image(); obstacle1.src = "carro1.png";
+        const obstacle2 = new Image(); obstacle2.src = "carro2.png";
+        const obstacle3 = new Image(); obstacle3.src = "carro3.png";
         const road = new Image(); road.src = "road.png";
 
-        let lanes = [];
-        let carX, carY, laneWidth;
-        let obstacles = [];
-        let speed = 3;
-        let roadOffset = 0;
+        let carX = canvas.width / 2 - 25;
+        let carY = canvas.height - 120;
+        let targetX = carX;
         let score = 0;
-        let coins = 0;
+        let coins = parseInt(localStorage.getItem("coins")) || 0;
         let gameRunning = false;
+        let obstacles = [];
+        let speed = 5;
+        const laneWidth = canvas.width / 3;
 
-        function setupLanes() {
-            laneWidth = canvas.width / 4;
-            lanes = [laneWidth / 2 - 25, laneWidth * 1.5 - 25, laneWidth * 2.5 - 25, laneWidth * 3.5 - 25];
-            carX = lanes[1];
-            carY = canvas.height - 120;
+        function updateScore() {
+            scoreDisplay.innerText = "Pontos: " + score;
+            coinsDisplay.innerText = "Moedas: " + coins;
+            storeCoinsDisplay.innerText = coins;
+            localStorage.setItem("coins", coins);
         }
-        
-        setupLanes();
 
-        document.addEventListener("keydown", (event) => {
-            if (!gameRunning) return;
-            if (event.key === "ArrowLeft") moveCar(-1);
-            if (event.key === "ArrowRight") moveCar(1);
-        });
-
-        function moveCar(direction) {
-            let currentLane = lanes.indexOf(carX);
-            let newLane = currentLane + direction;
-            if (newLane >= 0 && newLane < lanes.length) {
-                carX = lanes[newLane];
+        function buySkin(skin) {
+            const prices = { "carro1.png": 3, "carro2.png": 5, "carro3.png": 7 };
+            if (coins >= prices[skin]) {
+                coins -= prices[skin];
+                car.src = skin;
+                updateScore();
+                alert("Skin comprada com sucesso!");
+            } else {
+                alert("Moedas insuficientes!");
             }
         }
 
-        function updateObstacles() {
-            if (Math.random() < 0.02) {
-                let lane = Math.floor(Math.random() * lanes.length);
-                let randomX = lanes[lane];
-                let chosenObstacle = obstaclesImg[Math.floor(Math.random() * obstaclesImg.length)];
-                let obstacleSpeed = speed * 2;
-                obstacles.push({ x: randomX, y: -50, img: chosenObstacle, speed: obstacleSpeed });
-            }
-            obstacles.forEach((obstacle, index) => {
-                obstacle.y += obstacle.speed;
-                if (obstacle.y > canvas.height) {
-                    obstacles.splice(index, 1);
-                    score++;
-                    scoreDisplay.innerText = "Pontos: " + score;
-                    if (score % 10 === 0) {
-                        coins++;
-                        coinsDisplay.innerText = "Moedas: " + coins;
-                    }
-                    if (score % 5 === 0) speed += 0.5;
-                }
-            });
+        function openStore() {
+            menu.style.display = "none";
+            store.style.display = "flex";
         }
 
-        function checkCollision() {
-            for (let obstacle of obstacles) {
-                if (
-                    carX < obstacle.x + 50 &&
-                    carX + 50 > obstacle.x &&
-                    carY < obstacle.y + 50 &&
-                    carY + 100 > obstacle.y
-                ) {
-                    gameOver();
-                }
-            }
-        }
-
-        function gameOver() {
-            gameRunning = false;
-            finalScore.innerText = "Pontuação: " + score;
-            gameOverScreen.style.display = "flex";
-            canvas.style.display = "none";
-        }
-
-        function update() {
-            if (!gameRunning) return;
-
-            roadOffset += speed;
-            if (roadOffset >= canvas.height) roadOffset = 0;
-
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(road, 0, roadOffset - canvas.height, canvas.width, canvas.height);
-            ctx.drawImage(road, 0, roadOffset, canvas.width, canvas.height);
-            ctx.drawImage(car, carX, carY, 50, 100);
-
-            obstacles.forEach(obstacle => {
-                ctx.drawImage(obstacle.img, obstacle.x, obstacle.y, 50, 50);
-            });
-
-            updateObstacles();
-            checkCollision();
-
-            requestAnimationFrame(update);
+        function closeStore() {
+            store.style.display = "none";
+            menu.style.display = "flex";
         }
 
         function startGame() {
             menu.style.display = "none";
             gameOverScreen.style.display = "none";
+            store.style.display = "none";
             canvas.style.display = "block";
             score = 0;
-            coinsDisplay.innerText = "Moedas: " + coins;
-            setupLanes();
-            speed = 3;
-            obstacles = [];
+            carX = canvas.width / 2 - 25;
+            targetX = carX;
             gameRunning = true;
+            obstacles = [];
+            updateScore();
             update();
         }
 
-        function restartGame() {
+        function returnToMenu() {
             menu.style.display = "flex";
             gameOverScreen.style.display = "none";
+            canvas.style.display = "none";
+        }
+
+        document.addEventListener("keydown", (event) => {
+            if (!gameRunning) return;
+            if (event.key === "ArrowLeft" && targetX > laneWidth / 2 - 25) targetX -= laneWidth;
+            if (event.key === "ArrowRight" && targetX < canvas.width - laneWidth - 25) targetX += laneWidth;
+        });
+
+        function update() {
+            if (!gameRunning) return;
+
+            carX += (targetX - carX) * 0.1;
+            score++;
+            if (score % 10 === 0) coins++;
+            updateScore();
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(road, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(car, carX, carY, 50, 100);
+
+            if (Math.random() < 0.02) {
+                let lane = Math.floor(Math.random() * 3);
+                let obstacleX = lane * laneWidth + laneWidth / 2 - 25;
+                let obstacleImg = Math.random() < 0.5 ? obstacle1 : obstacle2;
+                obstacles.push({ x: obstacleX, y: -50, img: obstacleImg });
+            }
+
+            obstacles.forEach((obstacle, index) => {
+                obstacle.y += speed;
+                ctx.drawImage(obstacle.img, obstacle.x, obstacle.y, 50, 100);
+                if (
+                    carX < obstacle.x + 50 &&
+                    carX + 50 > obstacle.x &&
+                    carY < obstacle.y + 100 &&
+                    carY + 100 > obstacle.y
+                ) {
+                    gameRunning = false;
+                    gameOverScreen.style.display = "flex";
+                    canvas.style.display = "none";
+                }
+                if (obstacle.y > canvas.height) obstacles.splice(index, 1);
+            });
+            requestAnimationFrame(update);
         }
     </script>
-</body>
-</html>
-
-
 </body>
 </html>
