@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enduro Clone</title>
+    <style>
+        body { margin: 0; overflow: hidden; background: black; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        let carImage = new Image();
+        carImage.src = "car.png"; // Substitua por sua sprite
+        
+        let roadImage = new Image();
+        roadImage.src = "road.png"; // Substitua por sua sprite
+
+        let car = { x: canvas.width / 2 - 25, y: canvas.height - 120, width: 50, height: 100, speed: 0 };
+        let keys = {};
+        
+        window.addEventListener("keydown", (e) => keys[e.key] = true);
+        window.addEventListener("keyup", (e) => keys[e.key] = false);
+
+        function update() {
+            if (keys["ArrowLeft"]) car.x -= 5;
+            if (keys["ArrowRight"]) car.x += 5;
+            
+            car.x = Math.max(0, Math.min(canvas.width - car.width, car.x));
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(roadImage, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(carImage, car.x, car.y, car.width, car.height);
+        }
+
+        function gameLoop() {
+            update();
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        gameLoop();
+    </script>
+</body>
+</html>
