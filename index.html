@@ -50,11 +50,19 @@
         const obstacle3 = new Image(); obstacle3.src = "carro3.png";
         const road = new Image(); road.src = "road.png";
 
-        let carX = canvas.width / 2 - 25;
+        const laneWidth = canvas.width / 4; // Divide a pista em 4 faixas
+        const lanePositions = [
+            laneWidth * 0.5 - 25,
+            laneWidth * 1.5 - 25,
+            laneWidth * 2.5 - 25,
+            laneWidth * 3.5 - 25
+        ]; // Posições centrais das 4 faixas
+
+        let carLane = 1; // Começa na segunda faixa (índice 1)
         let carY = canvas.height - 120;
-        let carSpeedX = 0; // Velocidade lateral
-        const acceleration = 1.5; // Aceleração ao pressionar a tecla
-        const friction = 0.85; // Atrito para suavizar a parada
+        let carSpeedX = 0;
+        const acceleration = 1.5;
+        const friction = 0.85;
 
         let obstacles = [];
         let baseSpeed = 3;
@@ -65,26 +73,17 @@
 
         document.addEventListener("keydown", (event) => {
             if (!gameRunning) return;
-            if (event.key === "ArrowLeft") carSpeedX = -acceleration * 5;
-            if (event.key === "ArrowRight") carSpeedX = acceleration * 5;
-        });
-
-        document.addEventListener("keyup", (event) => {
-            if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
-                carSpeedX *= friction;
-            }
+            if (event.key === "ArrowLeft" && carLane > 0) carLane--;
+            if (event.key === "ArrowRight" && carLane < 3) carLane++;
         });
 
         function updateObstacles() {
             if (Math.random() < 0.02) {
-                let laneWidth = canvas.width / 3; // Divide a pista em 3 faixas
-                let lane = Math.floor(Math.random() * 3); // Escolhe aleatoriamente uma faixa
-                let randomX = lane * laneWidth + laneWidth / 2 - 25; // Centraliza o carro na faixa
-                
+                let lane = Math.floor(Math.random() * 4); // Escolhe uma das 4 faixas
                 let obstacleType = Math.random();
                 let chosenObstacle = obstacleType < 0.4 ? obstacle1 : obstacleType < 0.7 ? obstacle2 : obstacle3;
                 let obstacleSpeed = speed * 2;
-                obstacles.push({ x: randomX, y: -50, img: chosenObstacle, speed: obstacleSpeed });
+                obstacles.push({ x: lanePositions[lane], y: -50, img: chosenObstacle, speed: obstacleSpeed });
             }
             obstacles.forEach((obstacle, index) => {
                 obstacle.y += obstacle.speed;
@@ -100,8 +99,8 @@
         function checkCollision() {
             for (let obstacle of obstacles) {
                 if (
-                    carX < obstacle.x + 50 &&
-                    carX + 50 > obstacle.x &&
+                    lanePositions[carLane] < obstacle.x + 50 &&
+                    lanePositions[carLane] + 50 > obstacle.x &&
                     carY < obstacle.y + 50 &&
                     carY + 100 > obstacle.y
                 ) {
@@ -123,13 +122,8 @@
             roadOffset += speed;
             if (roadOffset >= canvas.height) roadOffset = 0;
 
-            // Aplica o atrito para suavizar a parada
             carSpeedX *= friction;
-            carX += carSpeedX;
-
-            // Garante que o carro fique dentro da estrada
-            if (carX < 50) carX = 50;
-            if (carX > canvas.width - 70) carX = canvas.width - 70;
+            carX = lanePositions[carLane]; // Atualiza a posição do carro com base na faixa
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(road, 0, roadOffset - canvas.height, canvas.width, canvas.height);
@@ -151,7 +145,7 @@
             gameOverScreen.style.display = "none";
             canvas.style.display = "block";
             score = 0;
-            carX = canvas.width / 2 - 25;
+            carLane = 1; // Volta para a segunda faixa
             carY = canvas.height - 120;
             carSpeedX = 0;
             speed = baseSpeed;
