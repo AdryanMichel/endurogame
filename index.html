@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Corrida Suave</title>
+    <title>Joguinho</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { overflow: hidden; background: black; font-family: Arial, sans-serif; }
@@ -23,7 +23,7 @@
 </head>
 <body>
     <div id="menu">
-        <h1>Corrida Suave</h1>
+        <h1>Joguinho</h1>
         <button onclick="startGame()">Jogar</button>
         <button onclick="openStore()">Loja</button>
     </div>
@@ -73,6 +73,7 @@
         let score = 0;
         let coins = 0;
         let gameRunning = false;
+        let obstacles = [];
 
         function updateScore() {
             scoreDisplay.innerText = "Pontos: " + score;
@@ -112,15 +113,36 @@
             carY = canvas.height - 120;
             carSpeedX = 0;
             gameRunning = true;
+            obstacles = [];
             updateScore();
             update();
         }
 
         function update() {
             if (!gameRunning) return;
+            
             score++;
             if (score % 10 === 0) coins++;
             updateScore();
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(road, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(car, carX, carY, 50, 100);
+            
+            if (Math.random() < 0.02) {
+                let laneWidth = canvas.width / 3;
+                let lane = Math.floor(Math.random() * 3);
+                let obstacleX = lane * laneWidth + laneWidth / 2 - 25;
+                let obstacleImg = Math.random() < 0.5 ? obstacle1 : obstacle2;
+                obstacles.push({ x: obstacleX, y: -50, img: obstacleImg });
+            }
+
+            obstacles.forEach((obstacle, index) => {
+                obstacle.y += 5;
+                ctx.drawImage(obstacle.img, obstacle.x, obstacle.y, 50, 100);
+                if (obstacle.y > canvas.height) obstacles.splice(index, 1);
+            });
+
             requestAnimationFrame(update);
         }
     </script>
