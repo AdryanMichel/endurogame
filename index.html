@@ -67,41 +67,25 @@
             if (event.key === "ArrowDown" && carY < canvas.height - 120) carY += 20;
         });
 
-      function updateObstacles() {
-    if (obstacles.length < lanes.length) {
-        let usedLanes = new Set();
-
-        while (usedLanes.size < lanes.length) {
-            let laneIndex = Math.floor(Math.random() * lanes.length);
-            if (!usedLanes.has(laneIndex)) {
-                usedLanes.add(laneIndex);
-                let chosenObstacle = Math.random() < 0.4 ? obstacle1 : Math.random() < 0.7 ? obstacle2 : obstacle3;
-
-                let obstacleX = lanes[laneIndex];
-
-                obstacles.push({
-                    x: obstacleX,
-                    y: -50,
-                    img: chosenObstacle,
-                    speed: speed * 2
-                });
+        function updateObstacles() {
+            if (Math.random() < 0.02) { // Ajustei a frequência dos obstáculos
+                let randomX = Math.random() * (canvas.width - 100) + 50;
+                let obstacleType = Math.random();
+                let chosenObstacle = obstacleType < 0.4 ? obstacle1 : obstacleType < 0.7 ? obstacle2 : obstacle3;
+                let obstacleSpeed = speed * 2; // Os carros têm o dobro da velocidade
+                obstacles.push({ x: randomX, y: -50, img: chosenObstacle, speed: obstacleSpeed });
             }
+            obstacles.forEach((obstacle, index) => {
+                obstacle.y += obstacle.speed;
+                if (obstacle.y > canvas.height) {
+                    obstacles.splice(index, 1);
+                    score++;
+                    scoreDisplay.innerText = "Pontos: " + score;
+                    if (score % 5 === 0) speed += 0.5; // Aumenta a velocidade a cada 5 pontos
+                }
+            });
         }
-    }
 
-    obstacles.forEach((obstacle, index) => {
-        obstacle.y += obstacle.speed;
-
-       
-        if (obstacle.y > canvas.height) {
-            obstacles.splice(index, 1);
-            score++;
-            scoreDisplay.innerText = "Pontos: " + score;
-
-            if (score % 5 === 0) speed += 0.5;
-        }
-    });
-}
         function checkCollision() {
             for (let obstacle of obstacles) {
                 if (
