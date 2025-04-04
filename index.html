@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Joguinho</title>
+    <title>Corrida Suave</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { overflow: hidden; background: black; font-family: Arial, sans-serif; }
@@ -23,7 +23,7 @@
 </head>
 <body>
     <div id="menu">
-        <h1>Joguinho</h1>
+        <h1>Corrida Suave</h1>
         <button onclick="startGame()">Jogar</button>
         <button onclick="openStore()">Loja</button>
     </div>
@@ -69,9 +69,9 @@
 
         let carX = canvas.width / 2 - 25;
         let carY = canvas.height - 120;
-        let carSpeedX = 0;
+        let targetX = carX;
         let score = 0;
-        let coins = 0;
+        let coins = parseInt(localStorage.getItem("coins")) || 0;
         let gameRunning = false;
         let obstacles = [];
         let speed = 5;
@@ -81,6 +81,7 @@
             scoreDisplay.innerText = "Pontos: " + score;
             coinsDisplay.innerText = "Moedas: " + coins;
             storeCoinsDisplay.innerText = coins;
+            localStorage.setItem("coins", coins);
         }
 
         function buySkin(skin) {
@@ -112,23 +113,29 @@
             canvas.style.display = "block";
             score = 0;
             carX = canvas.width / 2 - 25;
-            carY = canvas.height - 120;
-            carSpeedX = 0;
+            targetX = carX;
             gameRunning = true;
             obstacles = [];
             updateScore();
             update();
         }
 
+        function restartGame() {
+            menu.style.display = "flex";
+            gameOverScreen.style.display = "none";
+            canvas.style.display = "none";
+        }
+
         document.addEventListener("keydown", (event) => {
             if (!gameRunning) return;
-            if (event.key === "ArrowLeft" && carX > laneWidth / 2 - 25) carX -= laneWidth;
-            if (event.key === "ArrowRight" && carX < canvas.width - laneWidth - 25) carX += laneWidth;
+            if (event.key === "ArrowLeft" && carX > laneWidth / 2 - 25) targetX -= laneWidth;
+            if (event.key === "ArrowRight" && carX < canvas.width - laneWidth - 25) targetX += laneWidth;
         });
 
         function update() {
             if (!gameRunning) return;
-            
+
+            carX += (targetX - carX) * 0.2;
             score++;
             if (score % 10 === 0) coins++;
             updateScore();
