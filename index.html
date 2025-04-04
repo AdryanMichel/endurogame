@@ -5,44 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enduro Clone</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            overflow: hidden;
-            background: black;
-            font-family: Arial, sans-serif;
-        }
-        canvas {
-            display: none;
-            background: url('road.png') repeat-y center;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { overflow: hidden; background: black; font-family: Arial, sans-serif; }
+        canvas { display: none; background: url('road.png') repeat-y center; }
         #menu, #gameOver {
-            position: absolute;
-            top: 50%;
-            left: 50%;
+            position: absolute; top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            color: white;
-            font-size: 24px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            color: white; font-size: 24px;
+            display: flex; flex-direction: column; align-items: center;
         }
-        button {
-            font-size: 20px;
-            padding: 10px 20px;
-            margin-top: 10px;
-            cursor: pointer;
-        }
-        #score {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            color: white;
-            font-size: 20px;
-        }
+        button { font-size: 20px; padding: 10px 20px; margin-top: 10px; cursor: pointer; }
+        #score { position: absolute; top: 10px; left: 10px; color: white; font-size: 20px; }
     </style>
 </head>
 <body>
@@ -71,18 +44,16 @@
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
 
-        const car = new Image();
-        car.src = "car.png";
-        const obstacleImg = new Image();
-        obstacleImg.src = "obstacle.png";
-        const road = new Image();
-        road.src = "road.png";
+        const car = new Image(); car.src = "car.png";
+        const obstacle1 = new Image(); obstacle1.src = "carro1.png";
+        const obstacle2 = new Image(); obstacle2.src = "carro2.png";
+        const obstacle3 = new Image(); obstacle3.src = "carro3.png";
+        const road = new Image(); road.src = "road.png";
 
         let carX = canvas.width / 2 - 25;
         let carY = canvas.height - 120;
         let obstacles = [];
         let baseSpeed = 3;
-        let maxSpeed = 10;
         let speed = baseSpeed;
         let roadOffset = 0;
         let score = 0;
@@ -97,15 +68,20 @@
         });
 
         function updateObstacles() {
-            if (Math.random() < 0.015) { // Ajustei a frequência dos obstáculos
-                obstacles.push({ x: Math.random() * (canvas.width - 100) + 50, y: -50 });
+            if (Math.random() < 0.02) { // Ajustei a frequência dos obstáculos
+                let randomX = Math.random() * (canvas.width - 100) + 50;
+                let obstacleType = Math.random();
+                let chosenObstacle = obstacleType < 0.4 ? obstacle1 : obstacleType < 0.7 ? obstacle2 : obstacle3;
+                let obstacleSpeed = speed * 2; // Os carros têm o dobro da velocidade
+                obstacles.push({ x: randomX, y: -50, img: chosenObstacle, speed: obstacleSpeed });
             }
             obstacles.forEach((obstacle, index) => {
-                obstacle.y += speed;
+                obstacle.y += obstacle.speed;
                 if (obstacle.y > canvas.height) {
                     obstacles.splice(index, 1);
                     score++;
                     scoreDisplay.innerText = "Pontos: " + score;
+                    if (score % 5 === 0) speed += 0.5; // Aumenta a velocidade a cada 5 pontos
                 }
             });
         }
@@ -134,18 +110,15 @@
             if (!gameRunning) return;
 
             roadOffset += speed;
-            if (roadOffset >= canvas.height) {
-                roadOffset = 0;
-            }
+            if (roadOffset >= canvas.height) roadOffset = 0;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
             ctx.drawImage(road, 0, roadOffset - canvas.height, canvas.width, canvas.height);
             ctx.drawImage(road, 0, roadOffset, canvas.width, canvas.height);
-
             ctx.drawImage(car, carX, carY, 50, 100);
+
             obstacles.forEach(obstacle => {
-                ctx.drawImage(obstacleImg, obstacle.x, obstacle.y, 50, 50);
+                ctx.drawImage(obstacle.img, obstacle.x, obstacle.y, 50, 50);
             });
 
             updateObstacles();
