@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Corrida Suave</title>
+    <title>Joguinho</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { overflow: hidden; background: black; font-family: Arial, sans-serif; }
@@ -23,7 +23,7 @@
 </head>
 <body>
     <div id="menu">
-        <h1>Corrida Suave</h1>
+        <h1>Joguinho</h1>
         <button onclick="startGame()">Jogar</button>
         <button onclick="openStore()">Loja</button>
     </div>
@@ -40,7 +40,7 @@
     <div id="gameOver" style="display: none;">
         <h1>Game Over</h1>
         <p id="finalScore"></p>
-        <button onclick="restartGame()">Reiniciar</button>
+        <button onclick="returnToMenu()">Voltar ao Menu</button>
     </div>
 
     <div id="score">Pontos: 0</div>
@@ -56,7 +56,6 @@
         const scoreDisplay = document.getElementById("score");
         const coinsDisplay = document.getElementById("coins");
         const storeCoinsDisplay = document.getElementById("storeCoins");
-        const finalScore = document.getElementById("finalScore");
 
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
@@ -120,7 +119,7 @@
             update();
         }
 
-        function restartGame() {
+        function returnToMenu() {
             menu.style.display = "flex";
             gameOverScreen.style.display = "none";
             canvas.style.display = "none";
@@ -128,14 +127,14 @@
 
         document.addEventListener("keydown", (event) => {
             if (!gameRunning) return;
-            if (event.key === "ArrowLeft" && carX > laneWidth / 2 - 25) targetX -= laneWidth;
-            if (event.key === "ArrowRight" && carX < canvas.width - laneWidth - 25) targetX += laneWidth;
+            if (event.key === "ArrowLeft" && targetX > laneWidth / 2 - 25) targetX -= laneWidth;
+            if (event.key === "ArrowRight" && targetX < canvas.width - laneWidth - 25) targetX += laneWidth;
         });
 
         function update() {
             if (!gameRunning) return;
 
-            carX += (targetX - carX) * 0.2;
+            carX += (targetX - carX) * 0.1;
             score++;
             if (score % 10 === 0) coins++;
             updateScore();
@@ -143,7 +142,7 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(road, 0, 0, canvas.width, canvas.height);
             ctx.drawImage(car, carX, carY, 50, 100);
-            
+
             if (Math.random() < 0.02) {
                 let lane = Math.floor(Math.random() * 3);
                 let obstacleX = lane * laneWidth + laneWidth / 2 - 25;
@@ -166,7 +165,6 @@
                 }
                 if (obstacle.y > canvas.height) obstacles.splice(index, 1);
             });
-            
             requestAnimationFrame(update);
         }
     </script>
