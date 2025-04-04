@@ -9,10 +9,29 @@
             margin: 0;
             overflow: hidden;
             background: black;
+            text-align: center;
+            font-family: Arial, sans-serif;
         }
         canvas {
-            display: block;
+            display: none;
             background: url('road.png') repeat-y center;
+        }
+        #menu, #gameOver {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        button {
+            font-size: 20px;
+            padding: 10px 20px;
+            margin-top: 10px;
+            cursor: pointer;
         }
         #score {
             position: absolute;
@@ -20,16 +39,32 @@
             left: 10px;
             color: white;
             font-size: 20px;
-            font-family: Arial, sans-serif;
         }
     </style>
 </head>
 <body>
+    <div id="menu">
+        <h1>Enduro Clone</h1>
+        <button onclick="startGame()">Jogar</button>
+    </div>
+
+    <div id="gameOver" style="display: none;">
+        <h1>Game Over</h1>
+        <p id="finalScore"></p>
+        <button onclick="restartGame()">Reiniciar</button>
+    </div>
+
     <div id="score">Pontos: 0</div>
     <canvas id="gameCanvas"></canvas>
+
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
+        const menu = document.getElementById("menu");
+        const gameOverScreen = document.getElementById("gameOver");
+        const scoreDisplay = document.getElementById("score");
+        const finalScore = document.getElementById("finalScore");
+
         canvas.width = 400;
         canvas.height = 600;
 
@@ -43,8 +78,10 @@
         let obstacles = [];
         let speed = 4;
         let score = 0;
+        let gameRunning = false;
 
         document.addEventListener("keydown", (event) => {
+            if (!gameRunning) return;
             if (event.key === "ArrowLeft" && carX > 50) carX -= 15;
             if (event.key === "ArrowRight" && carX < 300) carX += 15;
         });
@@ -58,7 +95,7 @@
                 if (obstacle.y > canvas.height) {
                     obstacles.splice(index, 1);
                     score++;
-                    document.getElementById("score").innerText = "Pontos: " + score;
+                    scoreDisplay.innerText = "Pontos: " + score;
                 }
             });
         }
@@ -71,24 +108,48 @@
                     carY < obstacle.y + 50 &&
                     carY + 100 > obstacle.y
                 ) {
-                    alert("Game Over! Pontuação: " + score);
-                    document.location.reload();
+                    gameOver();
                 }
             }
         }
 
+        function gameOver() {
+            gameRunning = false;
+            finalScore.innerText = "Pontuação: " + score;
+            gameOverScreen.style.display = "flex";
+            canvas.style.display = "none";
+        }
+
         function update() {
+            if (!gameRunning) return;
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             ctx.drawImage(car, carX, carY, 50, 100);
             obstacles.forEach(obstacle => {
                 ctx.drawImage(obstacleImg, obstacle.x, obstacle.y, 50, 50);
             });
+
             updateObstacles();
             checkCollision();
+
             requestAnimationFrame(update);
         }
 
-        update();
+        function startGame() {
+            menu.style.display = "none";
+            gameOverScreen.style.display = "none";
+            canvas.style.display = "block";
+            score = 0;
+            carX = 175;
+            obstacles = [];
+            scoreDisplay.innerText = "Pontos: 0";
+            gameRunning = true;
+            update();
+        }
+
+        function restartGame() {
+            startGame();
+        }
     </script>
 </body>
 </html>
