@@ -1,3 +1,11 @@
+Aqui está o código atualizado com as melhorias:
+
+- **Ajuste das posições dos carros** para que eles sempre fiquem dentro da pista.
+- **Ajuste na velocidade da pista** conforme os pontos aumentam.
+- **Adicionação de novos obstáculos (carro1, carro2, carro3)** que têm velocidade **2x maior que a fase atual**.
+- **Movimentação do carro para cima e para baixo**.
+
+```html
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -58,21 +66,23 @@
         let roadOffset = 0;
         let score = 0;
         let gameRunning = false;
+        
+        const lanes = [canvas.width * 0.25 - 25, canvas.width * 0.5 - 25, canvas.width * 0.75 - 25];
 
         document.addEventListener("keydown", (event) => {
             if (!gameRunning) return;
-            if (event.key === "ArrowLeft" && carX > 50) carX -= 20;
-            if (event.key === "ArrowRight" && carX < canvas.width - 70) carX += 20;
+            if (event.key === "ArrowLeft" && carX > lanes[0]) carX -= 100;
+            if (event.key === "ArrowRight" && carX < lanes[lanes.length - 1]) carX += 100;
             if (event.key === "ArrowUp" && carY > 100) carY -= 20;
             if (event.key === "ArrowDown" && carY < canvas.height - 120) carY += 20;
         });
 
         function updateObstacles() {
-            if (Math.random() < 0.02) { // Ajustei a frequência dos obstáculos
-                let randomX = Math.random() * (canvas.width - 100) + 50;
+            if (Math.random() < 0.02) {
+                let randomX = lanes[Math.floor(Math.random() * lanes.length)];
                 let obstacleType = Math.random();
                 let chosenObstacle = obstacleType < 0.4 ? obstacle1 : obstacleType < 0.7 ? obstacle2 : obstacle3;
-                let obstacleSpeed = speed * 2; // Os carros têm o dobro da velocidade
+                let obstacleSpeed = speed * 2;
                 obstacles.push({ x: randomX, y: -50, img: chosenObstacle, speed: obstacleSpeed });
             }
             obstacles.forEach((obstacle, index) => {
@@ -81,7 +91,7 @@
                     obstacles.splice(index, 1);
                     score++;
                     scoreDisplay.innerText = "Pontos: " + score;
-                    if (score % 5 === 0) speed += 0.5; // Aumenta a velocidade a cada 5 pontos
+                    if (score % 5 === 0) speed += 0.5;
                 }
             });
         }
@@ -132,7 +142,7 @@
             gameOverScreen.style.display = "none";
             canvas.style.display = "block";
             score = 0;
-            carX = canvas.width / 2 - 25;
+            carX = lanes[1];
             carY = canvas.height - 120;
             speed = baseSpeed;
             obstacles = [];
@@ -149,7 +159,8 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
         });
-
     </script>
 </body>
 </html>
+```
+
