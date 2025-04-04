@@ -1,11 +1,4 @@
-Aqui está o código atualizado com as melhorias:
 
-- **Ajuste das posições dos carros** para que eles sempre fiquem dentro da pista.
-- **Ajuste na velocidade da pista** conforme os pontos aumentam.
-- **Adicionação de novos obstáculos (carro1, carro2, carro3)** que têm velocidade **2x maior que a fase atual**.
-- **Movimentação do carro para cima e para baixo**.
-
-```html
 <!DOCTYPE html>
 <html lang="pt">
 <head>
@@ -78,13 +71,17 @@ Aqui está o código atualizado com as melhorias:
         });
 
         function updateObstacles() {
-            if (Math.random() < 0.02) {
-                let randomX = lanes[Math.floor(Math.random() * lanes.length)];
-                let obstacleType = Math.random();
-                let chosenObstacle = obstacleType < 0.4 ? obstacle1 : obstacleType < 0.7 ? obstacle2 : obstacle3;
-                let obstacleSpeed = speed * 2;
-                obstacles.push({ x: randomX, y: -50, img: chosenObstacle, speed: obstacleSpeed });
+            if (obstacles.length < lanes.length) {
+                lanes.forEach((lane) => {
+                    if (!obstacles.some(obstacle => obstacle.x === lane)) {
+                        let obstacleType = Math.random();
+                        let chosenObstacle = obstacleType < 0.4 ? obstacle1 : obstacleType < 0.7 ? obstacle2 : obstacle3;
+                        let obstacleSpeed = speed * 2;
+                        obstacles.push({ x: lane, y: -50, img: chosenObstacle, speed: obstacleSpeed });
+                    }
+                });
             }
+
             obstacles.forEach((obstacle, index) => {
                 obstacle.y += obstacle.speed;
                 if (obstacle.y > canvas.height) {
