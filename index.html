@@ -5,50 +5,90 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Enduro Clone</title>
     <style>
-        body { margin: 0; overflow: hidden; background: black; }
-        canvas { display: block; }
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+        }
+        canvas {
+            display: block;
+            background: url('road.png') repeat-y center;
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 20px;
+            font-family: Arial, sans-serif;
+        }
     </style>
 </head>
 <body>
+    <div id="score">Pontos: 0</div>
     <canvas id="gameCanvas"></canvas>
     <script>
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        
-        let carImage = new Image();
-        carImage.src = "car.png"; // Substitua por sua sprite
-        
-        let roadImage = new Image();
-        roadImage.src = "road.png"; // Substitua por sua sprite
+        canvas.width = 400;
+        canvas.height = 600;
 
-        let car = { x: canvas.width / 2 - 25, y: canvas.height - 120, width: 50, height: 100, speed: 0 };
-        let keys = {};
-        
-        window.addEventListener("keydown", (e) => keys[e.key] = true);
-        window.addEventListener("keyup", (e) => keys[e.key] = false);
+        const car = new Image();
+        car.src = "car.png"; 
+        const obstacleImg = new Image();
+        obstacleImg.src = "obstacle.png"; 
+
+        let carX = 175;
+        let carY = 500;
+        let obstacles = [];
+        let speed = 4;
+        let score = 0;
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowLeft" && carX > 50) carX -= 15;
+            if (event.key === "ArrowRight" && carX < 300) carX += 15;
+        });
+
+        function updateObstacles() {
+            if (Math.random() < 0.02) {
+                obstacles.push({ x: Math.random() * 300 + 50, y: -50 });
+            }
+            obstacles.forEach((obstacle, index) => {
+                obstacle.y += speed;
+                if (obstacle.y > canvas.height) {
+                    obstacles.splice(index, 1);
+                    score++;
+                    document.getElementById("score").innerText = "Pontos: " + score;
+                }
+            });
+        }
+
+        function checkCollision() {
+            for (let obstacle of obstacles) {
+                if (
+                    carX < obstacle.x + 50 &&
+                    carX + 50 > obstacle.x &&
+                    carY < obstacle.y + 50 &&
+                    carY + 100 > obstacle.y
+                ) {
+                    alert("Game Over! Pontuação: " + score);
+                    document.location.reload();
+                }
+            }
+        }
 
         function update() {
-            if (keys["ArrowLeft"]) car.x -= 5;
-            if (keys["ArrowRight"]) car.x += 5;
-            
-            car.x = Math.max(0, Math.min(canvas.width - car.width, car.x));
-        }
-
-        function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(roadImage, 0, 0, canvas.width, canvas.height);
-            ctx.drawImage(carImage, car.x, car.y, car.width, car.height);
+            ctx.drawImage(car, carX, carY, 50, 100);
+            obstacles.forEach(obstacle => {
+                ctx.drawImage(obstacleImg, obstacle.x, obstacle.y, 50, 50);
+            });
+            updateObstacles();
+            checkCollision();
+            requestAnimationFrame(update);
         }
 
-        function gameLoop() {
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-        
-        gameLoop();
+        update();
     </script>
 </body>
 </html>
